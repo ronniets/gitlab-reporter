@@ -73,9 +73,9 @@ def calculate_profit_margin():
 ##Skapande av lista med all information.
 def calculate_user_time(df):
     try:
-        nv = find_null_values_in_account_label(df=df)
-        tn = get_time_for_null_values(nv=nv)
-        user = get_user_for_null_values(nv=nv)
+        nv = find_null_values_in_account_label(df)
+        tn = get_time_for_null_values(nv)
+        user = get_user_for_null_values(nv)
         return create_list_of_time_reports(tn, user)
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
@@ -94,23 +94,11 @@ def calculate_final(result_df):
 def print_df(df):
     print(df.to_string(index=False))
 
-##Hämtning och parsning av fil
-def get_filepath():
-    try:
-        parser = argparse.ArgumentParser(description="Gitlab Reporter")
-        parser.add_argument("function", type=str, help="Specify the function to perform")
-        parser.add_argument('csv', help="CSV file path")
-        args = parser.parse_args()
-        return args.csv
-    except:
-        print("Kunde inte köra parser.")
-
 ##Lista tomma konton
-def list_empty_accounts():
+def list_empty_accounts(file_path):
     try:
-        file_path = get_filepath()
-        df = load_csv(file_path=file_path)
-        result_df = calculate_user_time(df=df)
+        df = load_csv(file_path)
+        result_df = calculate_user_time(df)
         total_df = calculate_final(result_df)
         print_df(total_df)
 
@@ -119,7 +107,14 @@ def list_empty_accounts():
         sys.exit(1)
 
 def main():
-    list_empty_accounts()
+    if len(sys.argv) != 3:
+        print("Ange: python3 gitlab_reporter.py --list_empty_accounts <csv_file>")
+    else:
+        if sys.argv[1] == "--list_empty_accounts":
+            file_path = sys.argv[2]
+            list_empty_accounts(file_path)
+        else:
+            print("Ange: python3 gitlab_reporter.py --list_empty_accounts <csv_file>")
     
 if __name__ == "__main__":
     main()
