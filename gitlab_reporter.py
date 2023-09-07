@@ -1,17 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import pandas as pd
-import numpy as np
 import argparse
 import sys
 
 ##Ladda in CSV fil.
 def load_csv(file_path):
     try:
-        return pd.read_csv(open(file_path, 'rb'), index_col=False)
+        return pd.read_csv(open(file_path, 'rb'))
     except FileNotFoundError:
         print("Filen existerar inte.")
-        print("Test")
         sys.exit(1)
 
 ##Hitta alla värden i 'account_label' som är null.
@@ -38,30 +36,37 @@ def get_user_for_null_values(nv):
 ##Skapa en DataFrame av rapporterad tid för respektive användare.
 def create_list_of_time_reports(ts, user):
     try:
-        data = {'Sum - Time Spent': ts, 'User': user}
+        data = {'Time Spent': ts, 'User': user}
         return pd.DataFrame(data=data)
     except:
         print("Kunde inte skapa tidrapport")
 
+##Beräkning av den totala summan av den rapporterade tiden.
+def total_sum(df):
+    try:
+        total = df['Time Spent'].sum()
+        return total
+    except:
+        print("Kunde inte summera tider.")
+
 ##Formatering av kolumner i ny dataFrame.
 def user_dataframe(rs):
     try:
-        summary = rs.groupby('User')['Sum - Time Spent'].agg(['sum']).reset_index()
-        summary.rename(columns={'sum': 'Sum - Time Spent'}, inplace=True)
-        return summary
+        df = rs.groupby('User')['Time Spent'].agg(['sum']).reset_index()
+        df.rename(columns={'sum': 'Time Spent'}, inplace=True)
+        return df
     except:
         print("Kunde inte skapa en sorterad lista med användare och tidrapporter.")
 
 ##Lägg till det totala resultet i DataFrame
-def total_dataframe(summary):
+def total_dataframe(total, df):
     try:
-        total_sum = summary['Sum - Time Spent'].sum()
-        total_row = pd.DataFrame({'User': ['Total Result'], 'Sum - Time Spent': [total_sum]})
-        return pd.concat([summary, total_row], ignore_index=True)
+        total_row = pd.DataFrame({'User': ['Total Result'], 'Time Spent': [total]})
+        return pd.concat([df, total_row], ignore_index=True)
     except:
         print("Kunde inte skapa sorterad lista med den totala tiden.")
 
-##Beräkna debiterings grad
+##Beräkna debiteringsgrad
 def calculate_profit_margin():
     pass
 
@@ -73,31 +78,48 @@ def calculate_user_time(df):
         user = get_user_for_null_values(nv=nv)
         return create_list_of_time_reports(tn, user)
     except:
-        return pd.DataFrame(columns=['User', 'Sum Time - Spent'])
+        return pd.DataFrame(columns=['User', 'Time Spent'])
 
 ##Skapande av lista med den totala tiden inkluderad.
 def calculate_final(result_df):
     try:
-        summary = user_dataframe(result_df)
-        total_df = total_dataframe(summary=summary)
+        df = user_dataframe(result_df)
+        total = total_sum(result_df)
+        total_df = total_dataframe(total, df)
         return(total_df)
     except:
         print("Kunde inte skapa en lista med total tid.")
 
-def main():
+##Printar ut DataFrame utan Index värden
+def print_df(df):
+    print(df.to_string(index=False))
+
+##Hämtning och parsning av fil
+def get_filepath():
     try:
         parser = argparse.ArgumentParser(description="Gitlab Reporter")
+        parser.add_argument("function", type=str, help="Specify the function to perform")
         parser.add_argument('csv', help="CSV file path")
-
         args = parser.parse_args()
-        file_path = args.csv
+        return args.csv
+    except:
+        print("Kunde inte köra parser.")
 
+##Lista tomma konton
+def list_empty_accounts():
+    try:
+        file_path = get_filepath()
         df = load_csv(file_path=file_path)
         result_df = calculate_user_time(df=df)
         total_df = calculate_final(result_df)
-        print(total_df)
+        print_df(total_df)
+
     except:
         print("Kunde inte starta programmet.")
+        sys.exit(1)
+
+def main():
+    list_empty_accounts()
     
 if __name__ == "__main__":
     main()
