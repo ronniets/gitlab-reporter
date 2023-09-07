@@ -11,6 +11,7 @@ def load_csv(file_path):
         return pd.read_csv(open(file_path, 'rb'), index_col=False)
     except FileNotFoundError:
         print("Filen existerar inte.")
+        print("Test")
         sys.exit(1)
 
 ##Hitta alla värden i 'account_label' som är null.
