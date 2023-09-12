@@ -3,6 +3,8 @@
 import unittest
 import pandas as pd
 import numpy as np
+import sys
+
 from gitlab_reporter import (
     load_csv,
     find_null_values_in_account_label,
@@ -17,15 +19,20 @@ from gitlab_reporter import (
 )
 
 class UnitTest(unittest.TestCase):
+    def setUp(self):
+        self.file_path = sys.argv[1] if len(sys.argv) == 2 else None
+
     ##Hämtning av test data
     def get_test_data(self):
-        df = pd.read_csv('gitlab-worklog-export-2023-09-05.csv')
-        test_data = [(row['time_spent (hours)'], row['user']) for _, row in df.iterrows()]
-        return test_data
+        if self.file_path:
+            df = pd.read_csv(self.file_path)
+            test_data = [(row['time_spent (hours)'], row['user']) for _, row in df.iterrows()]
+            return test_data
 
     ##Få vägen till filen    
     def get_file_path(self):
-        return ('gitlab-worklog-export-2023-09-05.csv')
+        if self.file_path:
+            return (self.file_path)
     
     ##load_csv
     def test_load_csv(self):
@@ -228,6 +235,15 @@ class UnitTest(unittest.TestCase):
         df = pd.DataFrame(data)
         result = calculate_final(df)
         self.assertIsInstance(result, pd.DataFrame)
+    
+    def main(self):
+        if len(sys.argv) != 2:
+            print("Ange: python3 test_gitlab_reporter.py <csv_file>")
+
+        else:
+            file_path = sys.argv[1]
+            self.get_test_data(file_path)
+            self.get_file_path(file_path)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(argv=[''], exit=False)

@@ -6,7 +6,8 @@ import sys
 ##Ladda in CSV fil.
 def load_csv(file_path):
     try:
-        return pd.read_csv(open(file_path, 'rb'))
+        with open(file_path, 'rb') as file:
+            return pd.read_csv(file)
     except FileNotFoundError:
         print("Filen existerar inte.")
         sys.exit(1)
