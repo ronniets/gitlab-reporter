@@ -36,8 +36,7 @@ def create_list_of_time_reports(value_1, value_2, first_label, second_label):
 ##Calculation of the total sum of the reported time. 
 def total_sum(df, label_name):
     try:
-        total = df[label_name].sum()
-        return total
+        return df[label_name].sum()
     except:
         print(f"Couldn't summarize the total value for column: {label_name}")
 
@@ -120,6 +119,7 @@ def list_reported_time_per_account(file_path):
         print_df(total_df)
     except:
         print("Couldn't start the program.")
+        sys.exit(1)
 
 def main():
     if len(sys.argv) != 3:
