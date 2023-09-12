@@ -61,9 +61,9 @@ def total_dataframe(total, df, first_label, second_label):
 def calculate_user_time(df):
     try:
         nv = find_null_values_in_label(df, 'account_label')
-        tn = get_data_from_label(nv, 'time_spent (hours)')
+        ts = get_data_from_label(nv, 'time_spent (hours)')
         user = get_data_from_label(nv, 'user')
-        return create_list_of_time_reports(tn, user, 'Time Spent', 'User')
+        return create_list_of_time_reports(ts, user, 'Time Spent', 'User')
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
 
@@ -71,8 +71,8 @@ def calculate_user_time(df):
 def calculate_account_time(df):
     try:
         al = get_data_from_label(df, 'account_label')
-        tn = get_data_from_label(df, 'time_spent (hours)')
-        return create_list_of_time_reports(tn, al, 'Time Spent', 'Account Label')
+        ts = get_data_from_label(df, 'time_spent (hours)')
+        return create_list_of_time_reports(ts, al, 'Time Spent', 'Account Label')
     except:
         return pd.DataFrame(columns=['Account Label', 'Time Spent'])
 
