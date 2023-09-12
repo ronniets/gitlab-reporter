@@ -26,14 +26,6 @@ def get_data_from_label(df, label_name):
     except:
         print(f"There is no label named: {label_name}")
 
-
-##Get users for all null values·
-def get_label_for_null_values(nv, label_name):
-    try:
-        return nv[label_name]
-    except:
-        print(f"No {label_name} associated with this null value.")
-
 ##Creata a DataFrame of reported time for each user.
 def create_list_of_time_reports(value_1, value_2, first_label, second_label):
     try:
@@ -71,7 +63,7 @@ def calculate_user_time(df):
     try:
         nv = find_null_values_in_label(df, 'account_label')
         tn = get_data_from_label(nv, 'time_spent (hours)')
-        user = get_label_for_null_values(nv, 'user')
+        user = get_data_from_label(nv, 'user')
         return create_list_of_time_reports(tn, user, 'Time Spent', 'User')
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
