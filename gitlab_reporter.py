@@ -163,11 +163,10 @@ def main():
     if len(sys.argv) != 3:
         print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     else:
+        file_path = sys.argv[2]
         if sys.argv[1] == "--list_empty_accounts":
-            file_path = sys.argv[2]
             list_empty_accounts(file_path)
         elif sys.argv[1] == "--list_reported_time_per_person":
-            file_path = sys.argv[2]
             list_reported_time_per_account(file_path)
         else:
             print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
