@@ -1,0 +1,12 @@
+date_of_work,user,issue_key,time_spent (hours),issue_type,project_id,project_group,total_time_spent,account_label,issue_title,timelog_note
+2023-08-01T00:00:00+02:00,Anders Andersson,Key_1,1,Technical Task,Project_20,Hemmet,87,Hemmet,Stuff,
+2023-08-01T00:00:00+02:00,Bengt Bengtsson,Key_2,4.75,Technical Task,Project_42,Hotellet,10.5,Hotellet,Stuff,
+2023-08-01T00:00:00+02:00,Nils Nilsson,Key_3,2,Technical Task,Project_18,Huset,32.55,,Stuff,
+2023-08-01T00:00:00+02:00,Nils Nilsson,Key_4,2.5,Feature,Project_86,Huset,89.1,Huset,Stuff,
+2023-08-01T00:00:00+02:00,Nils Nilsson,Key_5,2,Bug,Project_86,Hotellet,2,,Stuff,
+2023-08-01T00:00:00+02:00,Olle Olsson,Key_6,0.5,Task,Project_22,Skolan,0.5,,Stuff,
+2023-08-01T00:00:00+02:00,Johan Johansson,Key_1,0.33,Order,Project_20,Lägenheten,145,,Stuff,
+2023-08-01T00:00:00+02:00,Sven Svensson,Key_4,2.33,Feature,Project_9,Huset,22,Skolan,Stuff,
+2023-08-01T00:00:00+02:00,Sven Svensson,Key_6,2.58,Order,Project_17,Lägenheten,170,Hotellet,Stuff,
+2023-08-01T09:05:21+02:00,Lars Larsson,Key_2,1,Bug,Project_52,Lägenheten,35,Lägenheten,Stuff,
+2023-08-02T00:00:00+02:00,Anders Andersson,Key_3,3.55,Order,Project_100,Lägenheten,170,Huset,Stuff,
