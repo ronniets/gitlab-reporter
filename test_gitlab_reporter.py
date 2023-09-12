@@ -235,15 +235,6 @@ class UnitTest(unittest.TestCase):
         df = pd.DataFrame(data)
         result = calculate_final(df)
         self.assertIsInstance(result, pd.DataFrame)
-    
-    def main(self):
-        if len(sys.argv) != 2:
-            print("Ange: python3 test_gitlab_reporter.py <csv_file>")
-
-        else:
-            file_path = sys.argv[1]
-            self.get_test_data(file_path)
-            self.get_file_path(file_path)
 
 if __name__ == '__main__':
     unittest.main(argv=[''], exit=False)
