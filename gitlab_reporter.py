@@ -13,123 +13,93 @@ def load_csv(file_path):
         sys.exit(1)
 
 ##Get all null values in account label
-def find_null_values_in_account_label(df):
+def find_null_values_in_label(df, label_name):
     try:
-        return df[df['account_label'].isnull()]
+        return df[df[label_name].isnull()]
     except:
-        print("There is no null values.")
+        print(f"There is no null values for label: {label_name}")
 
 ##Get all values in account label
-def get_account_label(df):
+def get_data_from_label(df, label_name):
     try:
-        return df['account_label']
+        return df[label_name]
     except:
-        print("There is no account labels.")
+        print(f"There is no label named: {label_name}")
 
-##Get reported time for all null values.
-def get_time_for_column(nv):
-    try:
-        return nv['time_spent (hours)']
-    except:
-        print("There is no reported time.")
 
 ##Get users for all null values·
-def get_user_for_column(nv):
+def get_label_for_null_values(nv, label_name):
     try:
-        return nv['user']
+        return nv[label_name]
     except:
-        print("No user has reported time for this null value.")
+        print(f"No {label_name} associated with this null value.")
 
 ##Creata a DataFrame of reported time for each user.
-def create_list_of_time_reports(ts, user):
+def create_list_of_time_reports(value_1, value_2, first_label, second_label):
     try:
-        return pd.DataFrame({'Time Spent': ts, 'User': user})
-    except:
-        print("Couldn't create time report.")
-
-##Creata a DataFrame of reported time for each account.
-def create_list_of_time_reports_per_account(ts, al):
-    try:
-        return pd.DataFrame({'Time Spent': ts, 'Account Label': al})
+        return pd.DataFrame({first_label: value_1, second_label: value_2})
     except:
         print("Couldn't create time report.")
 
 ##Calculation of the total sum of the reported time. 
-def total_sum(df):
+def total_sum(df, label_name):
     try:
-        total = df['Time Spent'].sum()
+        total = df[label_name].sum()
         return total
     except:
-        print("Couldn't summarize the time.")
+        print(f"Couldn't summarize the total value for column: {label_name}")
 
 ##Formatting of columns in a new DataFrame: 'User' 'Time Spent'.
-def user_dataframe(rs):
+def format_dataframe(rs, first_label, second_label):
     try:
-        df = rs.groupby('User')['Time Spent'].agg(['sum']).reset_index()
-        df.rename(columns={'sum': 'Time Spent'}, inplace=True)
+        df = rs.groupby(first_label)[second_label].agg(['sum']).reset_index()
+        df.rename(columns={'sum': second_label}, inplace=True)
         return df
     except:
         print("Couldn't create a sorted list with users and reported time.")
 
-##Formatting of columns in a new DataFrame: 'Account Label' 'Time Spent'.
-def account_dataframe(rs):
-    try:
-        df = rs.groupby('Account Label')['Time Spent'].agg(['sum']).reset_index()
-        df.rename(columns={'sum': 'Time Spent'}, inplace=True)
-        return df
-    except:
-        print("Couldn't create a sorted list with accounts and reported time.")
-
 ##Add the total time to the user DataFrame.
-def total_dataframe(total, df):
+def total_dataframe(total, df, first_label, second_label):
     try:
-        total_row = pd.DataFrame({'User': ['Total Result'], 'Time Spent': [total]})
+        total_row = pd.DataFrame({first_label: ['Total Result'], second_label: [total]})
         return pd.concat([df, total_row], ignore_index=True)
     except:
-        print("Couldn't create a sorted list with the total time.")
-
-##Add the total time to the account DataFrame.
-def total_account_dataframe(total, df):
-    try:
-        total_row = pd.DataFrame({'Account Label': ['Total Result'], 'Time Spent': [total]})
-        return pd.concat([df, total_row], ignore_index=True)
-    except:
-        print("Couldn't create a sorted list with the total time.")
+        print(f"Couldn't create a sorted list with the total value of column: {second_label}")
 
 ##Creation of a user/time spent DataFrame with all information.
 def calculate_user_time(df):
     try:
-        nv = find_null_values_in_account_label(df)
-        tn = get_time_for_column(nv)
-        user = get_user_for_column(nv)
-        return create_list_of_time_reports(tn, user)
+        nv = find_null_values_in_label(df, 'account_label')
+        tn = get_data_from_label(nv, 'time_spent (hours)')
+        user = get_label_for_null_values(nv, 'user')
+        return create_list_of_time_reports(tn, user, 'Time Spent', 'User')
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
 
 ##Creation of a account_label/time spent DataFrame with all information.
 def calculate_account_time(df):
     try:
-        al = get_account_label(df)
-        tn = get_time_for_column(df)
-        return create_list_of_time_reports_per_account(tn, al)
+        al = get_data_from_label(df, 'account_label')
+        tn = get_data_from_label(df, 'time_spent (hours)')
+        return create_list_of_time_reports(tn, al, 'Time Spent', 'Account Label')
     except:
         return pd.DataFrame(columns=['Account Label', 'Time Spent'])
 
 ##Creation of list with total time included.
 def calculate_final_list_empty_accounts(result_df):
     try:
-        df = user_dataframe(result_df)
-        total = total_sum(result_df)
-        return total_dataframe(total, df)
+        df = format_dataframe(result_df, 'User', 'Time Spent')
+        total = total_sum(result_df, 'Time Spent')
+        return total_dataframe(total, df, 'User', 'Time Spent')
     except:
         print("Couldn't create a list with total time.")
 
 ##Creation of list with total time included.
 def calculate_final_reported_time_for_user(result_df):
     try:
-        df = account_dataframe(result_df)
-        total = total_sum(result_df)
-        return total_account_dataframe(total, df)
+        df = format_dataframe(result_df, 'Account Label', 'Time Spent')
+        total = total_sum(result_df, 'Time Spent')
+        return total_dataframe(total, df, 'Account Label', 'Time Spent')
     except:
         print("Couldn't create a list with total time.")
 

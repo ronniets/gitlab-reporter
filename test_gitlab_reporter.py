@@ -8,7 +8,7 @@ import sys
 from gitlab_reporter import (
     load_csv,
     find_null_values_in_account_label,
-    get_time_for_null_values,
+    get_time_spent,
     get_user_for_null_values,
     create_list_of_time_reports,
     total_sum,
@@ -53,42 +53,42 @@ class UnitTest(unittest.TestCase):
             if null_values_df is not None:
                 self.assertListEqual(list(null_values_df.columns), expected_columns)
 
-    ##get_time_for_null_values
+    ##get_time_spent
     def test_valid_key_in_time_for_null_values(self):
         test_data = self.get_test_data()
         for ts, _ in test_data:
             nv = {'time_spent (hours)': ts}
-            result = get_time_for_null_values(nv)
+            result = get_time_spent(nv)
             self.assertEqual(result, ts)
 
     def test_false_key_in_time_for_null_values(self):
         nv = {'random_key': 5}
-        result = get_time_for_null_values(nv)
+        result = get_time_spent(nv)
         self.assertIsNone(result)
 
     def test_empty_time_for_null_values(self):
         nv = {}
-        result = get_time_for_null_values(nv)
+        result = get_time_spent(nv)
         self.assertIsNone(result)
 
     def test_positive_value_time_for_null_values(self):
         value = {'time_spent (hours)': 5}
-        result = get_time_for_null_values(value)
+        result = get_time_spent(value)
         self.assertEqual(result, 5)
 
     def test_negative_value_time_for_null_values(self):
         value = {'time_spent (hours)': -3}
-        result = get_time_for_null_values(value)
+        result = get_time_spent(value)
         self.assertEqual(result, -3)
 
     def test_zero_value_time_for_null_values(self):
         value = {'time_spent (hours)': 0}
-        result = get_time_for_null_values(value)
+        result = get_time_spent(value)
         self.assertEqual(result, 0)
 
     def test_non_dict_time_for_null_values(self):
         value = 42
-        result = get_time_for_null_values(value)
+        result = get_time_spent(value)
         self.assertIsNone(result)
 
     ##get_user_for_null_values
