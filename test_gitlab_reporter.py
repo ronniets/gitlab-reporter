@@ -15,21 +15,21 @@ from gitlab_reporter import (
     user_dataframe,
     total_dataframe,
     calculate_user_time,
-    calculate_final,
+    calculate_final_list_empty_accounts,
 )
 
 class UnitTest(unittest.TestCase):
     def setUp(self):
         self.file_path = sys.argv[1] if len(sys.argv) == 2 else None
 
-    ##Hämtning av test data
+    ##Get test data from CSV-file
     def get_test_data(self):
         if self.file_path:
             df = pd.read_csv(self.file_path)
             test_data = [(row['time_spent (hours)'], row['user']) for _, row in df.iterrows()]
             return test_data
 
-    ##Få vägen till filen    
+    ##Get the file path for the provided CSV-file   
     def get_file_path(self):
         if self.file_path:
             return (self.file_path)
@@ -212,7 +212,7 @@ class UnitTest(unittest.TestCase):
         csv = load_csv(self.get_file_path())
         df = pd.DataFrame(csv)
         result_df = calculate_user_time(df)
-        result = calculate_final(result_df)
+        result = calculate_final_list_empty_accounts(result_df)
         self.assertIsInstance(result, pd.DataFrame)
     
     def test_calculate_final_data(self):
@@ -222,18 +222,18 @@ class UnitTest(unittest.TestCase):
             data = [{'Time Spent': ts, 'User': us}]
             df = pd.DataFrame(data)
             result_df = calculate_user_time(df)
-            result = calculate_final(result_df)
+            result = calculate_final_list_empty_accounts(result_df)
             self.assertIsInstance(result, pd.DataFrame)
 
     def test_empty_calculate_final_input(self):
         empty_df = pd.DataFrame(columns=['Time Spent', 'User'])
-        result = calculate_final(empty_df)
+        result = calculate_final_list_empty_accounts(empty_df)
         self.assertIsInstance(result, pd.DataFrame)
 
     def test_final_with_missing_values(self):
         data = {'Time Spent': [1, 2, np.nan, 4], 'User': ['A', 'B', 'C', 'D']}
         df = pd.DataFrame(data)
-        result = calculate_final(df)
+        result = calculate_final_list_empty_accounts(df)
         self.assertIsInstance(result, pd.DataFrame)
 
 if __name__ == '__main__':

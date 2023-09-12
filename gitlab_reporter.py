@@ -3,118 +3,174 @@
 import pandas as pd
 import sys
 
-##Ladda in CSV fil.
+##Load CSV-File with <file_path>
 def load_csv(file_path):
     try:
         with open(file_path, 'rb') as file:
             return pd.read_csv(file)
     except FileNotFoundError:
-        print("Filen existerar inte.")
+        print("The filepath is incorrect or the file doesn't exist.")
         sys.exit(1)
 
-##Hitta alla värden i 'account_label' som är null.
+##Get all null values in account label
 def find_null_values_in_account_label(df):
     try:
         return df[df['account_label'].isnull()]
     except:
-        print("Det finns inga tomma kolumner.")
+        print("There is no null values.")
 
-##Få rapporterad tid för alla null värden i 'account_label'.
-def get_time_for_null_values(nv):
+##Get all values in account label
+def get_account_label(df):
     try:
-        return(nv['time_spent (hours)'])
+        return df['account_label']
     except:
-        print("Det finns ingen rapporterad tid.")
+        print("There is no account labels.")
 
-##Få alla användare för alla null värden i 'account_label'.
-def get_user_for_null_values(nv):
+##Get reported time for all null values.
+def get_time_for_column(nv):
     try:
-        return(nv['user'])
+        return nv['time_spent (hours)']
     except:
-        print("Det finns inga användare som tidrapporterat.")
+        print("There is no reported time.")
 
-##Skapa en DataFrame av rapporterad tid för respektive användare.
+##Get users for all null values·
+def get_user_for_column(nv):
+    try:
+        return nv['user']
+    except:
+        print("No user has reported time for this null value.")
+
+##Creata a DataFrame of reported time for each user.
 def create_list_of_time_reports(ts, user):
     try:
-        data = {'Time Spent': ts, 'User': user}
-        return pd.DataFrame(data=data)
+        return pd.DataFrame({'Time Spent': ts, 'User': user})
     except:
-        print("Kunde inte skapa tidrapport")
+        print("Couldn't create time report.")
 
-##Beräkning av den totala summan av den rapporterade tiden.
+##Creata a DataFrame of reported time for each account.
+def create_list_of_time_reports_per_account(ts, al):
+    try:
+        return pd.DataFrame({'Time Spent': ts, 'Account Label': al})
+    except:
+        print("Couldn't create time report.")
+
+##Calculation of the total sum of the reported time. 
 def total_sum(df):
     try:
         total = df['Time Spent'].sum()
         return total
     except:
-        print("Kunde inte summera tider.")
+        print("Couldn't summarize the time.")
 
-##Formatering av kolumner i ny dataFrame.
+##Formatting of columns in a new DataFrame: 'User' 'Time Spent'.
 def user_dataframe(rs):
     try:
         df = rs.groupby('User')['Time Spent'].agg(['sum']).reset_index()
         df.rename(columns={'sum': 'Time Spent'}, inplace=True)
         return df
     except:
-        print("Kunde inte skapa en sorterad lista med användare och tidrapporter.")
+        print("Couldn't create a sorted list with users and reported time.")
 
-##Lägg till det totala resultet i DataFrame
+##Formatting of columns in a new DataFrame: 'Account Label' 'Time Spent'.
+def account_dataframe(rs):
+    try:
+        df = rs.groupby('Account Label')['Time Spent'].agg(['sum']).reset_index()
+        df.rename(columns={'sum': 'Time Spent'}, inplace=True)
+        return df
+    except:
+        print("Couldn't create a sorted list with accounts and reported time.")
+
+##Add the total time to the user DataFrame.
 def total_dataframe(total, df):
     try:
         total_row = pd.DataFrame({'User': ['Total Result'], 'Time Spent': [total]})
         return pd.concat([df, total_row], ignore_index=True)
     except:
-        print("Kunde inte skapa sorterad lista med den totala tiden.")
+        print("Couldn't create a sorted list with the total time.")
 
-##Beräkna debiteringsgrad
-def calculate_profit_margin():
-    pass
+##Add the total time to the account DataFrame.
+def total_account_dataframe(total, df):
+    try:
+        total_row = pd.DataFrame({'Account Label': ['Total Result'], 'Time Spent': [total]})
+        return pd.concat([df, total_row], ignore_index=True)
+    except:
+        print("Couldn't create a sorted list with the total time.")
 
-##Skapande av lista med all information.
+##Creation of a user/time spent DataFrame with all information.
 def calculate_user_time(df):
     try:
         nv = find_null_values_in_account_label(df)
-        tn = get_time_for_null_values(nv)
-        user = get_user_for_null_values(nv)
+        tn = get_time_for_column(nv)
+        user = get_user_for_column(nv)
         return create_list_of_time_reports(tn, user)
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
 
-##Skapande av lista med den totala tiden inkluderad.
-def calculate_final(result_df):
+##Creation of a account_label/time spent DataFrame with all information.
+def calculate_account_time(df):
+    try:
+        al = get_account_label(df)
+        tn = get_time_for_column(df)
+        return create_list_of_time_reports_per_account(tn, al)
+    except:
+        return pd.DataFrame(columns=['Account Label', 'Time Spent'])
+
+##Creation of list with total time included.
+def calculate_final_list_empty_accounts(result_df):
     try:
         df = user_dataframe(result_df)
         total = total_sum(result_df)
-        total_df = total_dataframe(total, df)
-        return(total_df)
+        return total_dataframe(total, df)
     except:
-        print("Kunde inte skapa en lista med total tid.")
+        print("Couldn't create a list with total time.")
 
-##Printar ut DataFrame utan Index värden
+##Creation of list with total time included.
+def calculate_final_reported_time_for_user(result_df):
+    try:
+        df = account_dataframe(result_df)
+        total = total_sum(result_df)
+        return total_account_dataframe(total, df)
+    except:
+        print("Couldn't create a list with total time.")
+
+##Prints out DataFrame without index values.
 def print_df(df):
     print(df.to_string(index=False))
 
-##Lista tomma konton
+##Lists users with time reports for all empty accounts.
 def list_empty_accounts(file_path):
     try:
         df = load_csv(file_path)
         result_df = calculate_user_time(df)
-        total_df = calculate_final(result_df)
+        total_df = calculate_final_list_empty_accounts(result_df)
         print_df(total_df)
 
     except:
-        print("Kunde inte starta programmet.")
+        print("Couldn't start the program.")
         sys.exit(1)
+
+##Lists reported time for all accounts
+def list_reported_time_per_account(file_path):
+    try:
+        df = load_csv(file_path)
+        result_df = calculate_account_time(df)
+        total_df = calculate_final_reported_time_for_user(result_df)
+        print_df(total_df)
+    except:
+        print("Couldn't start the program.")
 
 def main():
     if len(sys.argv) != 3:
-        print("Ange: python3 gitlab_reporter.py --list_empty_accounts <csv_file>")
+        print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     else:
         if sys.argv[1] == "--list_empty_accounts":
             file_path = sys.argv[2]
             list_empty_accounts(file_path)
+        elif sys.argv[1] == "--list_reported_time_per_person":
+            file_path = sys.argv[2]
+            list_reported_time_per_account(file_path)
         else:
-            print("Ange: python3 gitlab_reporter.py --list_empty_accounts <csv_file>")
+            print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     
 if __name__ == "__main__":
     main()
