@@ -9,13 +9,13 @@ from gitlab_reporter import (
     load_csv,
     find_null_values_in_label,
     get_data_from_label,
-    get_label_for_null_values,
     create_list_of_time_reports,
     total_sum,
     format_dataframe,
     total_dataframe,
     calculate_user_time,
     calculate_final_list_empty_accounts,
+    calculate_final_reported_time_for_user
 )
 
 class UnitTest(unittest.TestCase):
@@ -98,33 +98,6 @@ class UnitTest(unittest.TestCase):
         label_name = 'time spent (hours)'
         value = 42
         result = get_data_from_label(value, label_name)
-        self.assertIsNone(result)
-
-    ##get_label_for_null_values
-    def test_valid_key_in_user_for_null_values(self):
-        test_data = self.get_test_data()
-        label_name = 'user'
-        for _, user in test_data:
-            nv = {label_name: user}
-            result = get_label_for_null_values(nv, label_name)
-            self.assertEqual(result, user)
-    
-    def test_false_key_in_user_for_null_values(self):
-        key = 'random key'
-        nv = 'User1'
-        result = get_label_for_null_values(nv, key)
-        self.assertIsNone(result)
-
-    def test_empty_user_for_null_values(self):
-        label_name = ''
-        nv = {}
-        result = get_label_for_null_values(nv, label_name)
-        self.assertIsNone(result)
-
-    def test_non_dict_user_for_null_values(self):
-        label_name = 'user'
-        value = 42
-        result = get_label_for_null_values(value, label_name)
         self.assertIsNone(result)
 
     ##create_list_of_time_reports
@@ -255,6 +228,35 @@ class UnitTest(unittest.TestCase):
         data = {'Time Spent': [1, 2, np.nan, 4], 'User': ['A', 'B', 'C', 'D']}
         df = pd.DataFrame(data)
         result = calculate_final_list_empty_accounts(df)
+        self.assertIsInstance(result, pd.DataFrame)
+
+    #calculate_final_reported_time_for_user
+    def test_calculate_final_report_from_file(self):
+        csv = load_csv(self.get_file_path())
+        df = pd.DataFrame(csv)
+        result_df = calculate_user_time(df)
+        result = calculate_final_reported_time_for_user(result_df)
+        self.assertIsInstance(result, pd.DataFrame)
+    
+    def test_calculate_final__report_data(self):
+        test_data = self.get_test_data()
+
+        for ts, al in test_data:
+            data = [{'Time Spent': ts, 'Account_Label': al}]
+            df = pd.DataFrame(data)
+            result_df = calculate_user_time(df)
+            result = calculate_final_reported_time_for_user(result_df)
+            self.assertIsInstance(result, pd.DataFrame)
+
+    def test_empty_calculate_final__report_input(self):
+        empty_df = pd.DataFrame(columns=['Time Spent', 'Account Label'])
+        result = calculate_final_reported_time_for_user(empty_df)
+        self.assertIsInstance(result, pd.DataFrame)
+
+    def test_final_report_with_missing_values(self):
+        data = {'Time Spent': [1, 2, np.nan, 4], 'Account Label': ['A', 'B', 'C', 'D']}
+        df = pd.DataFrame(data)
+        result = calculate_final_reported_time_for_user(df)
         self.assertIsInstance(result, pd.DataFrame)
 
 if __name__ == '__main__':
