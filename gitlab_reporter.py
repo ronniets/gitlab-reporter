@@ -111,7 +111,7 @@ def list_empty_accounts(file_path):
         sys.exit(1)
 
 ##Lists reported time for all accounts
-def list_reported_time_per_person(file_path):
+def list_reported_time_per_account(file_path):
     try:
         df = load_csv(file_path)
         result_df = calculate_account_time(df)
@@ -128,8 +128,8 @@ def main():
         file_path = sys.argv[2]
         if sys.argv[1] == "--list_empty_accounts":
             list_empty_accounts(file_path)
-        elif sys.argv[1] == "--list_reported_time_per_person":
-            list_reported_time_per_person(file_path)
+        elif sys.argv[1] == "--list_reported_time_per_account":
+            list_reported_time_per_account(file_path)
         else:
             print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     
