@@ -203,7 +203,6 @@ def main():
         elif sys.argv[1] == "--list_issues":
             list_issues(file_path)
             print(f"CSV-File created for list issues: {OUTPUT_PATH}")
-            print("Test")
         else:
             print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     
