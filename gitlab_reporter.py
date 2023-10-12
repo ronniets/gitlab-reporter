@@ -3,6 +3,8 @@
 import pandas as pd
 import sys
 
+OUTPUT_PATH = 'output.csv'
+
 ##Load CSV-File with <file_path>
 def load_csv(file_path):
     try:
@@ -11,6 +13,14 @@ def load_csv(file_path):
     except FileNotFoundError:
         print("The filepath is incorrect or the file doesn't exist.")
         sys.exit(1)
+
+##Write to CSV-File
+def dataframe_to_csv(df):
+    try:
+        if isinstance(df, pd.DataFrame):
+            df.to_csv(OUTPUT_PATH, index=False)
+    except:
+        print("Couldn't write to CSV")
 
 ##Get all null values in account label
 def find_null_values_in_label(df, label_name):
@@ -26,12 +36,72 @@ def get_data_from_label(df, label_name):
     except:
         print(f"There is no label named: {label_name}")
 
-##Creata a DataFrame of reported time for each user.
+##Create a DataFrame of reported time for each user.
 def create_list_of_time_reports(value_1, value_2, first_label, second_label):
     try:
         return pd.DataFrame({first_label: value_1, second_label: value_2})
     except:
         print("Couldn't create time report.")
+
+##Removes a column in a DataFrame
+def remove_column(df, column_name):
+    try:
+        if isinstance(df, pd.DataFrame):
+            for col in df.columns:
+                if column_name in col:
+                    del df[column_name]
+        
+        return df
+    except:
+        print("Couldn't remove column")
+
+##Gets the aggregation methods used in the formating of the DataFrame
+def get_agg_methods(df, column):
+    try:
+        agg_methods = {}
+
+        if isinstance(df, pd.DataFrame):
+            for col in df.columns:
+                if col != column:
+                    if pd.api.types.is_numeric_dtype(df[col]):
+                        agg_methods[col] = 'sum'
+                    else:
+                        agg_methods[col] = 'first'
+
+        return agg_methods
+    except:
+        print("Couldn't get aggregation methods")
+
+##Summarizes data based on the key column
+def summarize_data(df):
+    try:
+        if isinstance(df, pd.DataFrame):
+            column = df.columns[0]
+            agg_methods = get_agg_methods(df, column)
+            print(agg_methods)
+            new_df = df.groupby(column).agg(agg_methods).reset_index()
+            return new_df
+    except:
+        print("Couldn't summarize data")
+
+##Formats the DataFrame for the specific assignment
+def get_list_issues(df):
+    try:
+        remove_column(df, 'date_of_work')
+        remove_column(df, 'user')
+        return summarize_data(df)
+    except:
+        print("Couldn't get DataFrame")
+
+##Formats and lists the issues in a CSV
+def list_issues(file_path):
+    try:
+        df = load_csv(file_path)
+        new_df = get_list_issues(df)
+        print(new_df)
+        dataframe_to_csv(new_df)
+    except:
+        print("Program not working")
 
 ##Calculation of the total sum of the reported time. 
 def total_sum(df, label_name):
@@ -130,6 +200,9 @@ def main():
             list_empty_accounts(file_path)
         elif sys.argv[1] == "--list_reported_time_per_account":
             list_reported_time_per_account(file_path)
+        elif sys.argv[1] == "--list_issues":
+            list_issues(file_path)
+            print(f"CSV-File created for list issues: {OUTPUT_PATH}")
         else:
             print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     
