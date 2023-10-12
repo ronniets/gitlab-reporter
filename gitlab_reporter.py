@@ -78,7 +78,6 @@ def summarize_data(df):
         if isinstance(df, pd.DataFrame):
             column = df.columns[0]
             agg_methods = get_agg_methods(df, column)
-            print(agg_methods)
             new_df = df.groupby(column).agg(agg_methods).reset_index()
             return new_df
     except:
