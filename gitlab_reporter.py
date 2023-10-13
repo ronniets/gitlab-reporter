@@ -3,7 +3,7 @@
 import pandas as pd
 import sys
 
-OUTPUT_PATH = 'output.csv'
+OUTPUT_PATH = 'csv/output.csv'
 
 ##Load CSV-File with <file_path>
 def load_csv(file_path):
@@ -19,8 +19,8 @@ def dataframe_to_csv(df):
     try:
         if isinstance(df, pd.DataFrame):
             df.to_csv(OUTPUT_PATH, index=False)
-    except:
-        print("Couldn't write to CSV")
+    except Exception as e:
+        print(f"Couldn't convert {df} to CSV, {e}")
 
 ##Get all null values in account label
 def find_null_values_in_label(df, label_name):
@@ -52,8 +52,8 @@ def remove_column(df, column_name):
                     del df[column_name]
         
         return df
-    except:
-        print("Couldn't remove column")
+    except Exception as e:
+        print(f"Couldn't remove column with name: {column_name}, {e}")
 
 ##Gets the aggregation methods used in the formating of the DataFrame
 def get_agg_methods(df, column):
@@ -69,8 +69,8 @@ def get_agg_methods(df, column):
                         agg_methods[col] = 'first'
 
         return agg_methods
-    except:
-        print("Couldn't get aggregation methods")
+    except Exception as e:
+        print(f"Couldn't get aggregation methods for {df} with the column: {column}, {e}")
 
 ##Summarizes data based on the key column
 def summarize_data(df):
@@ -80,27 +80,30 @@ def summarize_data(df):
             agg_methods = get_agg_methods(df, column)
             new_df = df.groupby(column).agg(agg_methods).reset_index()
             return new_df
-    except:
-        print("Couldn't summarize data")
+    except Exception as e:
+        print(f"Couldn't summarize data in {df}, {e}")
 
 ##Formats the DataFrame for the specific assignment
-def get_list_issues(df):
+def get_list_issues(df, columns_list):
     try:
-        remove_column(df, 'date_of_work')
-        remove_column(df, 'user')
-        return summarize_data(df)
-    except:
-        print("Couldn't get DataFrame")
+        if isinstance(df, pd.DataFrame):
+            for column in columns_list:
+                remove_column(df, column)
+            return summarize_data(df)
+    except Exception as e:
+        print(f"Couldn't get {df} and remove columns, {e}")
 
-##Formats and lists the issues in a CSV
-def list_issues(file_path):
-    try:
-        df = load_csv(file_path)
-        new_df = get_list_issues(df)
-        print(new_df)
-        dataframe_to_csv(new_df)
-    except:
-        print("Program not working")
+def convert_date(df, start_date, end_date, label):
+    if isinstance(df, pd.DataFrame):
+        try:
+            df[label] = pd.to_datetime(df[label])
+            df[label] = df[label].dt.tz_localize(None)
+            mask = (df[label] >= start_date) & (df[label] <= end_date)
+            return df[mask]
+        except Exception as e:
+            print(f"Error converting {label} column to datetime: {e}")
+
+        return df
 
 ##Calculation of the total sum of the reported time. 
 def total_sum(df, label_name):
@@ -190,20 +193,47 @@ def list_reported_time_per_account(file_path):
         print("Couldn't start the program.")
         sys.exit(1)
 
+##Formats and lists the issues in a CSV
+def list_issues(file_path, start_date, end_date):
+    try:
+        df = load_csv(file_path)
+        converted_df = convert_date(df, start_date, end_date, 'date_of_work')
+        columns_list = ['date_of_work', 'user']
+        formated_df = get_list_issues(converted_df, columns_list)
+        print(formated_df)
+        dataframe_to_csv(formated_df)
+        
+    except FileNotFoundError as e:
+        print(f"Couldn't find file: {file_path}, {e}")
+    except Exception as e:
+        print(f"Couldn't create DataFrame for file: {file_path}")
+
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
-    else:
-        file_path = sys.argv[2]
+        return
+
+    file_path = sys.argv[2]
+    
+    if sys.argv[1] == "--list_empty_accounts" or sys.argv[1] == "--list_reported_time_per_account":
         if sys.argv[1] == "--list_empty_accounts":
             list_empty_accounts(file_path)
-        elif sys.argv[1] == "--list_reported_time_per_account":
-            list_reported_time_per_account(file_path)
-        elif sys.argv[1] == "--list_issues":
-            list_issues(file_path)
-            print(f"CSV-File created for list issues: {OUTPUT_PATH}")
         else:
-            print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
+            list_reported_time_per_account(file_path)
+
+    elif sys.argv[1] == "--list_issues":
+        if "--start=" in sys.argv[2] and "--end=" in sys.argv[3]:
+            start_date = sys.argv[2].split('=')[1]
+            end_date = sys.argv[3].split('=')[1]
+            file_path = sys.argv[4]
+            
+            list_issues(file_path, start_date, end_date)
+        else:
+            print("Correct format: python3 gitlab_reporter.py --list_issues --start=<start_date> --end=<end_date> <csv_file>")
+            sys.exit(1)
+        
+    else:
+        print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     
 if __name__ == "__main__":
     main()
