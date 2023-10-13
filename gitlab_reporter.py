@@ -8,44 +8,75 @@ OUTPUT_PATH = 'csv/output.csv'
 #Load CSV-File with <file_path>
 def load_csv(file_path):
     try:
-        with open(file_path, 'rb') as file:
-            return pd.read_csv(file)
-    except FileNotFoundError:
-        print("The filepath is incorrect or the file doesn't exist.")
+        if file_path is None:
+            print("Filepath does not exist.")
+        else:
+            with open(file_path, 'rb') as file:
+                return pd.read_csv(file)
+    except FileNotFoundError as e:
+        print(f"{file_path} is incorrect {e}")
         sys.exit(1)
 
 #Write to CSV-File
 def dataframe_to_csv(df):
     try:
-        if isinstance(df, pd.DataFrame):
-            df.to_csv(OUTPUT_PATH, index=False)
+        if df is None:
+            print("There is no DataFrame")
+        else:
+            if isinstance(df, pd.DataFrame):
+                if OUTPUT_PATH is None:
+                    print("Please provide a path to store the CSV-file in.")
+                df.to_csv(OUTPUT_PATH, index=False)
     except Exception as e:
         print(f"Couldn't convert {df} to CSV, {e}")
 
 #Get all null values in account label
 def find_null_values_in_label(df, label_name):
     try:
-        return df[df[label_name].isnull()]
+        if df is None:
+            print("Please provide a DataFrame")
+        
+        if label_name is None:
+            print("Please provide a name for the label")
+        
+        if isinstance(df, pd.DataFrame):
+            return df[df[label_name].isnull()]
     except:
         print(f"There is no null values for label: {label_name}")
 
 #Get all values in account label
 def get_data_from_label(df, label_name):
     try:
-        return df[label_name]
+        if df is None:
+            print("Please provide a DataFrame")
+        
+        if label_name is None:
+            print("Please provide a name for the label")
+
+        if isinstance(df, pd.DataFrame):
+            return df[label_name]
     except:
         print(f"There is no label named: {label_name}")
 
 #Create a DataFrame of reported time for each user.
-def create_list_of_time_reports(value_1, value_2, first_label, second_label):
+def create_list_of_time_reports(report_list):
     try:
-        return pd.DataFrame({first_label: value_1, second_label: value_2})
+        if report_list is None:
+            print("Please provide a report list")
+
+        return pd.DataFrame(report_list)
     except:
         print("Couldn't create time report.")
 
 #Removes a column in a DataFrame
 def remove_column(df, column_name):
     try:
+        if df is None:
+            print("Please provide a valid DataFrame")
+
+        if column_name is None:
+            print("Please provide a valid column name")
+
         if isinstance(df, pd.DataFrame):
             for col in df.columns:
                 if column_name in col:
@@ -59,6 +90,12 @@ def remove_column(df, column_name):
 def get_agg_methods(df, column):
     try:
         agg_methods = {}
+
+        if df is None:
+            print("Please provide a valid DataFrame")
+
+        if column is None:
+            print("Please provide a valid column name")
 
         if isinstance(df, pd.DataFrame):
             for col in df.columns:
@@ -75,6 +112,9 @@ def get_agg_methods(df, column):
 #Summarizes data based on the key column
 def summarize_data(df):
     try:
+        if df is None:
+            print("Please provide a DataFrame")
+        
         if isinstance(df, pd.DataFrame):
             column = df.columns[0]
             agg_methods = get_agg_methods(df, column)
@@ -86,6 +126,12 @@ def summarize_data(df):
 #Formats the DataFrame for the specific assignment
 def get_list_issues(df, columns_list):
     try:
+        if df is None:
+            print("Please provide a DataFrame")
+        
+        if columns_list is None:
+            print("Please provide a columns list")
+
         if isinstance(df, pd.DataFrame):
             if not columns_list:
                 return None
@@ -97,12 +143,21 @@ def get_list_issues(df, columns_list):
 
 #Converts the date and filters the start and end dates
 def convert_date(df, start_date, end_date, label):
-    if isinstance(df, pd.DataFrame):
         try:
-            df[label] = pd.to_datetime(df[label])
-            df[label] = df[label].dt.tz_localize(None)
-            mask = (df[label] >= start_date) & (df[label] <= end_date)
-            return df[mask]
+            if df is None:
+                print("Please provide a DataFrame")
+            
+            if start_date or end_date is None:
+                print("Please provide a valid Date")
+
+            if label is None:
+                print("Please provide a valid label")
+                 
+            if isinstance(df, pd.DataFrame):
+                df[label] = pd.to_datetime(df[label])
+                df[label] = df[label].dt.tz_localize(None)
+                mask = (df[label] >= start_date) & (df[label] <= end_date)
+                return df[mask]
         except Exception as e:
             print(f"Error converting {label} column to datetime: {e}")
 
@@ -111,100 +166,185 @@ def convert_date(df, start_date, end_date, label):
 #Calculation of the total sum of the reported time. 
 def total_sum(df, label_name):
     try:
-        return df[label_name].sum()
+        if df is None:
+            print("Please provide DataFrame")
+        
+        if label_name is None:
+            print("Please provide a label name")
+
+        if isinstance(df, pd.DataFrame):
+            return df[label_name].sum()
     except:
         print(f"Couldn't summarize the total value for column: {label_name}")
 
 #Formatting of columns in a new DataFrame: 'User' 'Time Spent'.
 def format_dataframe(rs, first_label, second_label):
     try:
-        df = rs.groupby(first_label)[second_label].agg(['sum']).reset_index()
-        df.rename(columns={'sum': second_label}, inplace=True)
-        return df
+        if rs is None:
+            print("Please provide a DataFrame")
+
+        if first_label is None:
+            print("Please provide a label")
+        
+        if second_label is None:
+            print("Please provide a label")
+
+        if isinstance(rs, pd.DataFrame):
+            df = rs.groupby(first_label, dropna=False)[second_label].agg(['sum']).reset_index()
+            df.rename(columns={'sum': second_label}, inplace=True)
+            return df
     except:
         print("Couldn't create a sorted list with users and reported time.")
 
 #Add the total time to the user DataFrame.
 def total_dataframe(total, df, first_label, second_label):
     try:
-        total_row = pd.DataFrame({first_label: ['Total Result'], second_label: [total]})
-        return pd.concat([df, total_row], ignore_index=True)
+        if total is None:
+            print("Please provide a total value")
+        
+        if df is None:
+            print("Please provide a DataFrame")
+        
+        if first_label is None:
+            print("Please provide a label")
+        
+        if second_label is None:
+            print("Please provide a label")
+
+        if isinstance(df, pd.DataFrame):
+            total_row = pd.DataFrame({first_label: ['Total Result'], second_label: [total]})
+            return pd.concat([df, total_row], ignore_index=True)
     except:
         print(f"Couldn't create a sorted list with the total value of column: {second_label}")
 
 #Creation of a user/time spent DataFrame with all information.
 def calculate_user_time(df):
     try:
-        nv = find_null_values_in_label(df, 'account_label')
-        ts = get_data_from_label(nv, 'time_spent (hours)')
-        user = get_data_from_label(nv, 'user')
-        return create_list_of_time_reports(ts, user, 'Time Spent', 'User')
+        if df is None:
+            print("Please provide a DataFrame")
+
+        if isinstance(df, pd.DataFrame):
+            nv = find_null_values_in_label(df, 'account_label')
+            ts = get_data_from_label(nv, 'time_spent (hours)')
+            user = get_data_from_label(nv, 'user')
+
+            report_list = {
+                    'Time Spent': ts.tolist(),
+                    'User': user.tolist()
+            }
+
+            return create_list_of_time_reports(report_list)
     except:
         return pd.DataFrame(columns=['User', 'Time Spent'])
 
 #Creation of a account_label/time spent DataFrame with all information.
 def calculate_account_time(df):
     try:
-        al = get_data_from_label(df, 'account_label')
-        ts = get_data_from_label(df, 'time_spent (hours)')
-        return create_list_of_time_reports(ts, al, 'Time Spent', 'Account Label')
+        if df is None:
+            print("Please provide a DataFrame")
+
+        if isinstance(df, pd.DataFrame):
+            al = get_data_from_label(df, 'account_label')
+            ts = get_data_from_label(df, 'time_spent (hours)')
+
+            report_list = {
+                'Account Label': al.tolist(),
+                'Time Spent': ts.tolist()
+            }
+
+            return create_list_of_time_reports(report_list)
     except:
         return pd.DataFrame(columns=['Account Label', 'Time Spent'])
 
 #Creation of list with total time included.
-def calculate_final_list_empty_accounts(result_df):
+def calculate_final_list_empty_accounts(df):
     try:
-        df = format_dataframe(result_df, 'User', 'Time Spent')
-        total = total_sum(result_df, 'Time Spent')
-        return total_dataframe(total, df, 'User', 'Time Spent')
+        if df is None:
+            print("Please provide a DataFrame")
+
+        if isinstance(df, pd.DataFrame):
+            df = format_dataframe(df, 'User', 'Time Spent')
+            total = total_sum(df, 'Time Spent')
+            return total_dataframe(total, df, 'User', 'Time Spent')
     except:
         print("Couldn't create a list with total time.")
 
 #Creation of list with total time included.
-def calculate_final_reported_time_for_user(result_df):
+def calculate_final_reported_time_for_user(df):
     try:
-        df = format_dataframe(result_df, 'Account Label', 'Time Spent')
-        total = total_sum(result_df, 'Time Spent')
-        return total_dataframe(total, df, 'Account Label', 'Time Spent')
+        if df is None:
+            print("Please provide a DataFrame")
+
+        if isinstance(df, pd.DataFrame):
+            result_df = format_dataframe(df, 'Account Label', 'Time Spent')
+            total = total_sum(result_df, 'Time Spent')
+            return total_dataframe(total, result_df, 'Account Label', 'Time Spent')
     except:
         print("Couldn't create a list with total time.")
 
 #Prints out DataFrame without index values.
 def print_df(df):
-    print(df.to_string(index=False))
+    try:
+        if df is None:
+            print("Please provide a DataFrame")
+
+        if isinstance(df, pd.DataFrame):
+            print(df.to_string(index=False))
+    except Exception as e:
+        print(f"Couldnt print DataFrame: {df}, {e}")
 
 #Lists users with time reports for all empty accounts.
 def list_empty_accounts(file_path):
     try:
+        if file_path is None:
+            print("Please provide a file_path")
+        
         df = load_csv(file_path)
-        result_df = calculate_user_time(df)
-        total_df = calculate_final_list_empty_accounts(result_df)
-        print_df(total_df)
-
-    except:
-        print("Couldn't start the program.")
+        
+        if isinstance(df, pd.DataFrame):
+            result_df = calculate_user_time(df)
+            total_df = calculate_final_list_empty_accounts(result_df)
+            print_df(total_df)
+    except Exception as e:
+        print(f"Couldn't start the program with file_path: {file_path}, {e}")
         sys.exit(1)
 
 #Lists reported time for all accounts
 def list_reported_time_per_account(file_path):
     try:
+        if file_path is None:
+            print("Please provide a file_path")
+        
         df = load_csv(file_path)
-        result_df = calculate_account_time(df)
-        total_df = calculate_final_reported_time_for_user(result_df)
-        print_df(total_df)
-    except:
-        print("Couldn't start the program.")
+
+        if isinstance(df, pd.DataFrame):
+            result_df = calculate_account_time(df)
+            total_df = calculate_final_reported_time_for_user(result_df)
+            print_df(total_df)
+    except Exception as e:
+        print(f"Couldn't start the program with file_path: {file_path}, {e}")
         sys.exit(1)
 
 #Formats and lists the issues in a CSV
 def list_issues(file_path, start_date, end_date):
     try:
+        if file_path is None:
+            print("Please provide a file_path")
+        
+        if start_date is None:
+            print("Please provide a start_date")
+
+        if end_date is None:
+            print("Please provide a end date")
+
         df = load_csv(file_path)
-        converted_df = convert_date(df, start_date, end_date, 'date_of_work')
-        columns_list = ['date_of_work', 'user']
-        formated_df = get_list_issues(converted_df, columns_list)
-        print(formated_df)
-        dataframe_to_csv(formated_df)
+        
+        if isinstance(df, pd.DataFrame):
+            converted_df = convert_date(df, start_date, end_date, 'date_of_work')
+            columns_list = ['date_of_work', 'user']
+            formated_df = get_list_issues(converted_df, columns_list)
+            print(formated_df)
+            dataframe_to_csv(formated_df)
         
     except FileNotFoundError as e:
         print(f"Couldn't find file: {file_path}, {e}")

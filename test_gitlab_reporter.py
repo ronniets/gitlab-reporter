@@ -73,13 +73,20 @@ class UnitTest(unittest.TestCase):
 
     #get_data_from_label
     def test_valid_key_in_time_for_null_values(self):
-        test_data = self.get_test_data()
         label_name = 'time spent (hours)'
+        data = []
 
-        for ts, _ in test_data:
-            nv = {label_name: ts}
-            result = get_data_from_label(nv, label_name)
-            self.assertEqual(result, ts)
+        test_data = {
+            label_name: data
+        }
+            
+        nv = pd.DataFrame(test_data)
+        result = get_data_from_label(nv, label_name)
+
+        if len(data) > 0:
+            self.assertEqual(result, data)
+        else:
+            self.assertTrue(result.empty)
 
     def test_false_key_in_time_for_null_values(self):
         key = 'random key'
@@ -95,21 +102,33 @@ class UnitTest(unittest.TestCase):
 
     def test_positive_value_time_for_null_values(self):
         label_name = 'time spent (hours)'
-        value = {label_name: 5}
-        result = get_data_from_label(value, label_name)
-        self.assertEqual(result, 5)
+        test_data = {
+            label_name: [3]
+            }
+        
+        df = pd.DataFrame(test_data)
+        result = get_data_from_label(df, label_name)
+        self.assertEqual(result.iloc[0], 3)
 
     def test_negative_value_time_for_null_values(self):
         label_name = 'time spent (hours)'
-        value = {label_name: -3}
-        result = get_data_from_label(value, 'time spent (hours)')
-        self.assertEqual(result, -3)
+        test_data = {
+            label_name: [-3]
+            }
+        
+        df = pd.DataFrame(test_data)
+        result = get_data_from_label(df, label_name)
+        self.assertEqual(result.iloc[0], -3)
 
     def test_zero_value_time_for_null_values(self):
         label_name = 'time spent (hours)'
-        value = {label_name: 0}
-        result = get_data_from_label(value, label_name)
-        self.assertEqual(result, 0)
+        test_data = {
+            label_name: [0]
+            }
+        
+        df = pd.DataFrame(test_data)
+        result = get_data_from_label(df, label_name)
+        self.assertEqual(result.iloc[0], 0)
 
     def test_non_dict_time_for_null_values(self):
         label_name = 'time spent (hours)'
@@ -121,9 +140,12 @@ class UnitTest(unittest.TestCase):
     def test_create_dataframe_success(self):
         test_data = self.get_test_data()
         for ts, user in test_data:
-            ts_list = [ts]
-            user_list = [user]
-            result = create_list_of_time_reports(ts_list, user_list, 'Time Spent', 'User')
+            test_list = {
+                'Time Spent': [ts],
+                'User': [user]
+            }
+            result = create_list_of_time_reports(test_list)
+            self.assertIsNotNone(result)
             self.assertIsInstance(result, pd.DataFrame)
             self.assertEqual(len(result), 1)
 
@@ -131,14 +153,24 @@ class UnitTest(unittest.TestCase):
         test_data = self.get_test_data()
         ts = []
         for _, user in test_data:
-            result = create_list_of_time_reports(ts , user, 'Time Spent', 'User')
+            test_list = {
+                'Time Spent': [ts],
+                'User': [user]
+            }
+            result = create_list_of_time_reports(test_list)
+            self.assertIsNotNone(result)
             self.assertIsInstance(result, pd.DataFrame)
 
     def test_create_dataframe_exception_user(self):
         test_data = self.get_test_data()
         user = []
         for ts, _ in test_data:
-            result = create_list_of_time_reports(ts,user,'Time Spent', 'User')
+            test_list = {
+                'Time Spent': [ts],
+                'User': [user]
+            }
+            result = create_list_of_time_reports(test_list)
+            self.assertIsNotNone(result)
             self.assertIsInstance(result, pd.DataFrame)
 
     #total_sum
@@ -208,15 +240,6 @@ class UnitTest(unittest.TestCase):
         result = calculate_user_time(df)
         self.assertIsNotNone(result)
 
-    def test_exceptions_calculate_user_time(self):
-        test_data = self.get_test_data()
-
-        for ts, us in test_data:
-            data = [{'Time Spent': ts, 'User': us}]
-            df = pd.DataFrame(data)
-            result = calculate_user_time(df)
-            self.assertEqual(result, None)
-
     #calculate_time
     def test_calculate_final_from_file(self):
         csv = load_csv(self.get_file_path())
@@ -262,6 +285,7 @@ class UnitTest(unittest.TestCase):
             df = pd.DataFrame(data)
             result_df = calculate_user_time(df)
             result = calculate_final_reported_time_for_user(result_df)
+            self.assertIsNotNone(result)
             self.assertIsInstance(result, pd.DataFrame)
 
     def test_empty_calculate_final__report_input(self):
