@@ -93,6 +93,7 @@ def get_list_issues(df, columns_list):
     except Exception as e:
         print(f"Couldn't get {df} and remove columns, {e}")
 
+##Converts the date and filters the start and end dates
 def convert_date(df, start_date, end_date, label):
     if isinstance(df, pd.DataFrame):
         try:
