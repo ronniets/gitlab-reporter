@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import unittest
+import unittest.mock as mock
 import pandas as pd
 import numpy as np
 import sys
@@ -15,7 +16,14 @@ from gitlab_reporter import (
     total_dataframe,
     calculate_user_time,
     calculate_final_list_empty_accounts,
-    calculate_final_reported_time_for_user
+    calculate_final_reported_time_for_user,
+    dataframe_to_csv,
+    remove_column,
+    get_agg_methods,
+    summarize_data,
+    get_list_issues,
+    convert_date,
+    list_issues
 )
 
 class UnitTest(unittest.TestCase):
@@ -33,6 +41,15 @@ class UnitTest(unittest.TestCase):
     def get_file_path(self):
         if self.file_path:
             return (self.file_path)
+
+    #Get a list for the Aggregation Tests
+    def get_agg_data(self):
+        return {
+            'A': [1, 2, 3],
+            'B': [4.5, 5.6, 6.7],
+            'C': ['x', 'y', 'z'],
+            'D': [True, False, True]
+        }
     
     ##load_csv
     def test_load_csv(self):
@@ -103,7 +120,6 @@ class UnitTest(unittest.TestCase):
     ##create_list_of_time_reports
     def test_create_dataframe_success(self):
         test_data = self.get_test_data()
-        print(test_data)
         for ts, user in test_data:
             ts_list = [ts]
             user_list = [user]
@@ -258,6 +274,85 @@ class UnitTest(unittest.TestCase):
         df = pd.DataFrame(data)
         result = calculate_final_reported_time_for_user(df)
         self.assertIsInstance(result, pd.DataFrame)
+
+    #dataframe_to_csv
+    def test_dataframe_to_csv(self):
+        data = self.get_test_data()
+        for ts, us in data:
+            dt = [{'Time Spent': ts, 'User': us}]
+            test_df = pd.DataFrame(dt)
+            with mock.patch.object(test_df, "to_csv") as to_csv_mock:
+                dataframe_to_csv(test_df)
+                to_csv_mock.assert_called_with('csv/output.csv', index=False)
+
+    #remove_column
+    def test_remove_column_true(self):
+        data = self.get_test_data()
+        for ts, us in data:
+            dt = {'Time Spent': [ts], 'User': [us]}
+            test_df = pd.DataFrame(dt)
+            expected_result = pd.DataFrame({'User': [us]})
+            actual_result = remove_column(test_df, 'Time Spent')
+            self.assertCountEqual(actual_result.columns, expected_result.columns)
+            self.assertTrue(actual_result.equals(expected_result))
+    
+    def test_remove_column_empty(self):
+        column_name = 'Test'
+        df = pd.DataFrame({column_name: []})
+        result = remove_column(df, column_name)
+        self.assertIs(result, df)
+
+    def test_remove_column_int(self):
+        column_name = 'Test'
+        df = pd.DataFrame({column_name: [1]})
+        result = remove_column(df, column_name)
+        self.assertIs(result, df)
+
+    #get_agg_methods
+    def test_agg_methods_non_num(self):
+        data = self.get_agg_data()
+        df = pd.DataFrame(data)
+        result = get_agg_methods(df, 'A')
+        self.assertEqual(result.get('C'), 'first')
+    
+    def test_agg_methods_num(self):
+        data = self.get_agg_data()
+        df = pd.DataFrame(data)
+        result = get_agg_methods(df, 'A')
+        self.assertEqual(result.get('B'), 'sum')
+    
+    def test_agg_methods_bool(self):
+        data = self.get_agg_data()
+        df = pd.DataFrame(data)
+        result = get_agg_methods(df, 'A')
+        self.assertEqual(result['D'], 'sum')
+    
+    def test_agg_methods_none(self):
+        df = pd.DataFrame()
+        result = get_agg_methods(df, 'A')
+        self.assertEqual(result, {})
+
+    #summarize_data
+    def test_summarize_data_columns(self):
+        test_data = {
+            'Test': [1, 2, 3],
+            'Working': [4, 5, 6],
+        }
+        df = pd.DataFrame(test_data)
+        result = summarize_data(df)
+        expected = ['Test', 'Working']
+        result_col = result.columns.tolist()
+        self.assertEqual(result_col, expected)
+    
+    def test_summarize_data_invalid(self):
+        invalid = [1, 2, 3]
+        result = summarize_data(invalid)
+        self.assertIsNone(result)
+
+    def test_summarize_data_empty(self):
+        df = pd.DataFrame()
+        result = summarize_data(df)
+        self.assertIsNone(result)
 
 if __name__ == '__main__':
     unittest.main(argv=[''], exit=False)
