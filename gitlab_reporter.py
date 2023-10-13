@@ -230,7 +230,7 @@ def main():
             end_date = sys.argv[3].split('=')[1]
             file_path = sys.argv[4]
             list_issues(file_path, start_date, end_date)
-            print(f"A CSV file called output.csv with the listed issues, has been created for file: {file_path}")
+            print(f"A CSV file called output.csv with the listed issues, has been created for file: {file_path} in the folder: csv/")
         else:
             print("Correct format: python3 gitlab_reporter.py --list_issues --start=<start_date> --end=<end_date> <csv_file>")
             sys.exit(1)

@@ -4,7 +4,7 @@ import unittest
 import unittest.mock as mock
 import pandas as pd
 import numpy as np
-import sys
+import os
 
 from gitlab_reporter import (
     load_csv,
@@ -28,7 +28,7 @@ from gitlab_reporter import (
 
 class UnitTest(unittest.TestCase):
     def setUp(self):
-        self.file_path = sys.argv[1] if len(sys.argv) == 2 else None
+        self.file_path = os.environ.get('CSV_FILE_PATH')
 
     #Get test data from CSV-file
     def get_test_data(self):
