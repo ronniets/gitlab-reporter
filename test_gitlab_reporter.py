@@ -30,14 +30,14 @@ class UnitTest(unittest.TestCase):
     def setUp(self):
         self.file_path = sys.argv[1] if len(sys.argv) == 2 else None
 
-    ##Get test data from CSV-file
+    #Get test data from CSV-file
     def get_test_data(self):
         if self.file_path:
             df = pd.read_csv(self.file_path)
             test_data = [(row['time_spent (hours)'], row['user']) for _, row in df.iterrows()]
             return test_data
 
-    ##Get the file path for the provided CSV-file   
+    #Get the file path for the provided CSV-file   
     def get_file_path(self):
         if self.file_path:
             return (self.file_path)
@@ -51,11 +51,11 @@ class UnitTest(unittest.TestCase):
             'D': [True, False, True]
         }
     
-    ##load_csv
+    #load_csv
     def test_load_csv(self):
         self.assertIsInstance(load_csv(self.get_file_path()), pd.DataFrame)
 
-    ##find_null_values_in_label
+    #find_null_values_in_label
     def test_find_null_values_in_label(self):
         test_data = self.get_test_data()
         for df in test_data:
@@ -71,7 +71,7 @@ class UnitTest(unittest.TestCase):
                 if null_values_df is not None:
                     self.assertListEqual(list(null_values_df.columns), expected_columns)
 
-    ##get_data_from_label
+    #get_data_from_label
     def test_valid_key_in_time_for_null_values(self):
         test_data = self.get_test_data()
         label_name = 'time spent (hours)'
@@ -117,7 +117,7 @@ class UnitTest(unittest.TestCase):
         result = get_data_from_label(value, label_name)
         self.assertIsNone(result)
 
-    ##create_list_of_time_reports
+    #create_list_of_time_reports
     def test_create_dataframe_success(self):
         test_data = self.get_test_data()
         for ts, user in test_data:
@@ -141,7 +141,7 @@ class UnitTest(unittest.TestCase):
             result = create_list_of_time_reports(ts,user,'Time Spent', 'User')
             self.assertIsInstance(result, pd.DataFrame)
 
-    ##total_sum
+    #total_sum
     def test_empty_total_sum(self):
         label_name = 'Time Spent'
         df = pd.DataFrame({label_name: []})
@@ -172,7 +172,7 @@ class UnitTest(unittest.TestCase):
         result = total_sum(df, label_name)
         self.assertEqual(result, 0)
 
-    ##format_dataframe
+    #format_dataframe
     def test_valid_format_dataframe(self):
         test_data = self.get_test_data()
         individual_sums = []
@@ -186,7 +186,7 @@ class UnitTest(unittest.TestCase):
             self.assertEqual(result.columns.tolist(), ['User', 'Time Spent'])
             self.assertEqual(result.iloc[0]['Time Spent'], ts)
 
-    ##total_dataframe
+    #total_dataframe
     def test_total_dataframe(self):
         test_data = self.get_test_data()
         individual_sums = []
@@ -201,7 +201,7 @@ class UnitTest(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(result.columns.tolist(), ['User', 'Time Spent'])
 
-    ##calculate_user_time
+    #calculate_user_time
     def test_calculate_user_time(self):
         csv = load_csv(self.get_file_path())
         df = pd.DataFrame(csv)
@@ -332,6 +332,10 @@ class UnitTest(unittest.TestCase):
         result = get_agg_methods(df, 'A')
         self.assertEqual(result, {})
 
+    def test_agg_methods_no_df(self):
+        result = get_agg_methods(None, 'A')
+        self.assertEqual(result, {})
+
     #summarize_data
     def test_summarize_data_columns(self):
         test_data = {
@@ -353,6 +357,85 @@ class UnitTest(unittest.TestCase):
         df = pd.DataFrame()
         result = summarize_data(df)
         self.assertIsNone(result)
+    
+    #get_list_issues
+    def test_get_list_issues(self):
+        test_data = {
+            'Test': [1, 2, 3],
+            'Working': [4, 5, 6],
+            'Third': [7, 8, 9]
+        }
+
+        expected_data = {
+            'Third': [24]
+        }
+
+        test_columns_list = ['Test', 'Working']
+
+        df = pd.DataFrame(test_data)
+        result_df = get_list_issues(df, test_columns_list)
+        expected_df = pd.DataFrame(expected_data)
+        if isinstance(result_df, pd.DataFrame):
+            self.assertTrue(result_df.equals(expected_df))
+
+    def test_get_list_issues_empty_df(self):
+        test_columns_list = ['Test', 'Working']
+        df = pd.DataFrame()
+        result = get_list_issues(df, test_columns_list)
+        self.assertIsNone(result)
+
+    def test_get_list_issues_empty_list(self):
+        test_data = {
+            'Test': [1, 2, 3],
+            'Working': [4, 5, 6],
+        }
+
+        test_columns_list = []
+        df = pd.DataFrame(test_data)
+        result = get_list_issues(df, test_columns_list)
+        self.assertIsNone(result)
+
+    #convert_date
+    def test_convert_date_valid(self):
+        data = {
+            'Date': ['2023-09-01', '2023-09-02', '2023-09-03'],
+            'User': ['Test', 'Anon', 'Ronald']
+        }
+
+        df = pd.DataFrame(data)
+        start_date='2023-09-01'
+        end_date='2023-09-04'
+        label = 'Date'
+
+        result_df = convert_date(df, start_date, end_date, label)
+        self.assertTrue(result_df['Date'].dtype == 'datetime64[ns]')
+        self.assertEqual(len(result_df), 3)
+    
+    def test_convert_date_invalid(self):
+        data = {
+            'Date': ['no_date', '2023-01-28', '2023-01-29'],
+            'User': ['Test', 'Anon', 'Ronald']
+        }
+
+        df = pd.DataFrame(data)
+        start_date='2023-01-01'
+        end_date='2023-02-01'
+        label = 'Date'
+
+        result_df = convert_date(df, start_date, end_date, label)
+        self.assertFalse(result_df['Date'].dtype == 'datetime64[ns]')
+        self.assertEqual(len(result_df), 3)
+
+    def test_convert_date_empty_df(self):
+        df = pd.DataFrame()
+        start_date = '2023-01-01'
+        end_date = '2023-02-28'
+        label = 'Date'
+
+        result_df = convert_date(df, start_date, end_date, label)
+
+        self.assertTrue(result_df.empty)
+
 
 if __name__ == '__main__':
     unittest.main(argv=[''], exit=False)

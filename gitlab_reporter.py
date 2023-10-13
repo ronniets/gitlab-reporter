@@ -87,6 +87,8 @@ def summarize_data(df):
 def get_list_issues(df, columns_list):
     try:
         if isinstance(df, pd.DataFrame):
+            if not columns_list:
+                return None
             for column in columns_list:
                 remove_column(df, column)
             return summarize_data(df)
