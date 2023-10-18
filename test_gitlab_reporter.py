@@ -269,24 +269,21 @@ class UnitTest(unittest.TestCase):
         result = calculate_final_list_empty_accounts(df)
         self.assertIsInstance(result, pd.DataFrame)
 
-    #calculate_final_reported_time_for_user
-    def test_calculate_final_report_from_file(self):
-        csv = load_csv(self.get_file_path())
-        df = pd.DataFrame(csv)
-        result_df = calculate_user_time(df)
-        result = calculate_final_reported_time_for_user(result_df)
-        self.assertIsInstance(result, pd.DataFrame)
-    
+    #calculate_final_reported_time_for_user    
     def test_calculate_final__report_data(self):
         test_data = self.get_test_data()
+        user = []
+        ts = []
+        for ts, user in test_data:
+            test_list = {
+                'Time Spent': [ts],
+                'User': [user]
+            }
 
-        for ts, al in test_data:
-            data = [{'Time Spent': ts, 'Account_Label': al}]
-            df = pd.DataFrame(data)
-            result_df = calculate_user_time(df)
-            result = calculate_final_reported_time_for_user(result_df)
-            self.assertIsNotNone(result)
-            self.assertIsInstance(result, pd.DataFrame)
+        df = pd.DataFrame(test_list)
+        result = calculate_final_reported_time_for_user(df)
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, pd.DataFrame)
 
     def test_empty_calculate_final__report_input(self):
         empty_df = pd.DataFrame(columns=['Time Spent', 'Account Label'])

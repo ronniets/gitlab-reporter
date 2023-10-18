@@ -3,8 +3,6 @@
 import pandas as pd
 import sys
 
-OUTPUT_PATH = 'csv/output.csv'
-
 #Load CSV-File with <file_path>
 def load_csv(file_path):
     try:
@@ -18,17 +16,29 @@ def load_csv(file_path):
         sys.exit(1)
 
 #Write to CSV-File
-def dataframe_to_csv(df):
+def dataframe_to_csv(df, path):
     try:
+        output_path = create_path_for_csv(path)
+
         if df is None:
             print("There is no DataFrame")
         else:
             if isinstance(df, pd.DataFrame):
-                if OUTPUT_PATH is None:
-                    print("Please provide a path to store the CSV-file in.")
-                df.to_csv(OUTPUT_PATH, index=False)
+                if output_path is None:
+                    print("Please provide a name and path to store the CSV-file in.")
+                df.to_csv(output_path, index=False)
     except Exception as e:
         print(f"Couldn't convert {df} to CSV, {e}")
+
+def create_path_for_csv(path):
+    try:
+        if path is None:
+            print("Please provide a name for the file.")
+        
+        if path:
+            return path + '.csv'
+    except Exception as e:
+        print(f"Couldn't create filepath for {path}.csv, {e}")
 
 #Get all null values in account label
 def find_null_values_in_label(df, label_name):
@@ -147,7 +157,10 @@ def convert_date(df, start_date, end_date, label):
             if df is None:
                 print("Please provide a DataFrame")
             
-            if start_date or end_date is None:
+            if start_date is None:
+                print("Please provide a valid Date")
+            
+            if end_date is None:
                 print("Please provide a valid Date")
 
             if label is None:
@@ -326,7 +339,7 @@ def list_reported_time_per_account(file_path):
         sys.exit(1)
 
 #Formats and lists the issues in a CSV
-def list_issues(file_path, start_date, end_date):
+def list_issues(file_path, start_date, end_date, output_path):
     try:
         if file_path is None:
             print("Please provide a file_path")
@@ -341,10 +354,10 @@ def list_issues(file_path, start_date, end_date):
         
         if isinstance(df, pd.DataFrame):
             converted_df = convert_date(df, start_date, end_date, 'date_of_work')
-            columns_list = ['date_of_work', 'user']
+            columns_list = ['date_of_work', 'user', 'timelog_note']
             formated_df = get_list_issues(converted_df, columns_list)
             print(formated_df)
-            dataframe_to_csv(formated_df)
+            dataframe_to_csv(formated_df, output_path)
         
     except FileNotFoundError as e:
         print(f"Couldn't find file: {file_path}, {e}")
@@ -352,31 +365,35 @@ def list_issues(file_path, start_date, end_date):
         print(f"Couldn't create DataFrame for file: {file_path}")
 
 def main():
-    if len(sys.argv) < 3:
-        print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
-        return
+    try:
+        if len(sys.argv) < 3:
+            print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
+            return
 
-    file_path = sys.argv[2]
-    
-    if sys.argv[1] == "--list_empty_accounts" or sys.argv[1] == "--list_reported_time_per_account":
-        if sys.argv[1] == "--list_empty_accounts":
-            list_empty_accounts(file_path)
-        else:
-            list_reported_time_per_account(file_path)
-
-    elif sys.argv[1] == "--list_issues":
-        if "--start=" in sys.argv[2] and "--end=" in sys.argv[3]:
-            start_date = sys.argv[2].split('=')[1]
-            end_date = sys.argv[3].split('=')[1]
-            file_path = sys.argv[4]
-            list_issues(file_path, start_date, end_date)
-            print(f"A CSV file called output.csv with the listed issues, has been created for file: {file_path} in the folder: csv/")
-        else:
-            print("Correct format: python3 gitlab_reporter.py --list_issues --start=<start_date> --end=<end_date> <csv_file>")
-            sys.exit(1)
+        file_path = sys.argv[2]
         
-    else:
-        print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
-    
+        if sys.argv[1] == "--list_empty_accounts" or sys.argv[1] == "--list_reported_time_per_account":
+            if sys.argv[1] == "--list_empty_accounts":
+                list_empty_accounts(file_path)
+            else:
+                list_reported_time_per_account(file_path)
+
+        elif sys.argv[1] == "--list_issues":
+            if "--start=" in sys.argv[2] and "--end=" in sys.argv[3]:
+                start_date = sys.argv[2].split('=')[1]
+                end_date = sys.argv[3].split('=')[1]
+                file_path = sys.argv[4]
+                output_path = sys.argv[5]
+                list_issues(file_path, start_date, end_date, output_path)
+                print(f"A CSV file called output.csv with the listed issues, has been created for file: {file_path} in the folder: {output_path}")
+            else:
+                print("Correct format: python3 gitlab_reporter.py --list_issues --start=<start_date> --end=<end_date> <csv_file> <output_path>")
+                sys.exit(1)
+            
+        else:
+            print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
+    except Exception as e:
+        print(f"Please provide the correct amount of arguments, {e}")
+        
 if __name__ == "__main__":
     main()
