@@ -24,7 +24,6 @@ from gitlab_reporter import (
     summarize_data,
     get_list_issues,
     convert_date,
-    list_issues
 )
 
 class UnitTest(unittest.TestCase):

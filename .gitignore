@@ -162,3 +162,5 @@ cython_debug/
 # CSV Files
 gitlab-worklog-export-2023-09-05.csv
 output.csv
+test.py
+/abstract
