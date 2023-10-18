@@ -19,6 +19,7 @@ def load_csv(file_path):
 def dataframe_to_csv(df, path):
     try:
         output_path = create_path_for_csv(path)
+        print(output_path)
 
         if df is None:
             print("There is no DataFrame")
@@ -26,10 +27,13 @@ def dataframe_to_csv(df, path):
             if isinstance(df, pd.DataFrame):
                 if output_path is None:
                     print("Please provide a name and path to store the CSV-file in.")
+                
                 df.to_csv(output_path, index=False)
+    
     except Exception as e:
         print(f"Couldn't convert {df} to CSV, {e}")
 
+#Creates the path and name for the output CSV file for method: list_issues.
 def create_path_for_csv(path):
     try:
         if path is None:
@@ -37,6 +41,7 @@ def create_path_for_csv(path):
         
         if path:
             return path + '.csv'
+    
     except Exception as e:
         print(f"Couldn't create filepath for {path}.csv, {e}")
 
@@ -394,6 +399,6 @@ def main():
             print("Correct format: python3 gitlab_reporter.py --method_name <csv_file>")
     except Exception as e:
         print(f"Please provide the correct amount of arguments, {e}")
-        
+
 if __name__ == "__main__":
     main()

@@ -8,6 +8,7 @@ import os
 
 from gitlab_reporter import (
     load_csv,
+    create_path_for_csv,
     find_null_values_in_label,
     get_data_from_label,
     create_list_of_time_reports,
@@ -54,6 +55,17 @@ class UnitTest(unittest.TestCase):
     #load_csv
     def test_load_csv(self):
         self.assertIsInstance(load_csv(self.get_file_path()), pd.DataFrame)
+    
+    #create_path_for_csv
+    def test_create_path_for_csv(self):
+        path = 'csv/test'
+        result = create_path_for_csv(path)
+        self.assertEqual(result, 'csv/test.csv')
+
+    def test_create_path_for_csv_null(self):
+        path = ""
+        result = create_path_for_csv(path)
+        self.assertEqual(result, None)
 
     #find_null_values_in_label
     def test_find_null_values_in_label(self):
@@ -270,30 +282,24 @@ class UnitTest(unittest.TestCase):
         self.assertIsInstance(result, pd.DataFrame)
 
     #calculate_final_reported_time_for_user    
-    def test_calculate_final__report_data(self):
-        test_data = self.get_test_data()
-        user = []
-        ts = []
-        for ts, user in test_data:
-            test_list = {
-                'Time Spent': [ts],
-                'User': [user]
-            }
-
+    def test_calculate_final_report_data(self):
+        test_list = {'Time Spent': [1,2,3], 'Account Label': ['Test', 'Test 2', 'Test 3']}
         df = pd.DataFrame(test_list)
         result = calculate_final_reported_time_for_user(df)
         self.assertIsNotNone(result)
         self.assertIsInstance(result, pd.DataFrame)
 
-    def test_empty_calculate_final__report_input(self):
+    def test_empty_calculate_final_report_input(self):
         empty_df = pd.DataFrame(columns=['Time Spent', 'Account Label'])
         result = calculate_final_reported_time_for_user(empty_df)
+        self.assertIsNotNone(result)
         self.assertIsInstance(result, pd.DataFrame)
 
     def test_final_report_with_missing_values(self):
         data = {'Time Spent': [1, 2, np.nan, 4], 'Account Label': ['A', 'B', 'C', 'D']}
         df = pd.DataFrame(data)
         result = calculate_final_reported_time_for_user(df)
+        self.assertIsNotNone(result)
         self.assertIsInstance(result, pd.DataFrame)
 
     #dataframe_to_csv
@@ -302,8 +308,9 @@ class UnitTest(unittest.TestCase):
         for ts, us in data:
             dt = [{'Time Spent': ts, 'User': us}]
             test_df = pd.DataFrame(dt)
+            path = 'csv/output'
             with mock.patch.object(test_df, "to_csv") as to_csv_mock:
-                dataframe_to_csv(test_df)
+                dataframe_to_csv(test_df, path)
                 to_csv_mock.assert_called_with('csv/output.csv', index=False)
 
     #remove_column
